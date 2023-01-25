@@ -1,0 +1,62 @@
+---
+kind: Module
+type: exec
+name: python-web-image
+description: Build docker image
+include:
+  - ./*
+build:
+  command: ["bazel", "run", "//projects/python_web:python_web_image", "--", "--norun"]
+
+---
+kind: Module
+type: exec
+name: python-web-tag-image
+include: []
+description: Tag docker image
+tasks:
+  - name: re-tag-image
+    command: ["docker", "tag", "bazel/projects/python_web:python_web_image", "python_web:${modules.python-web-image.version}" ]
+
+---
+kind: Module
+name: python-web
+type: kubernetes
+include: []
+build:
+  dependencies:
+    - python-web-image
+dependencies:
+  - re-tag-image
+manifests:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: python-web
+      labels:
+        app: python-web
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: python-web
+      template:
+        metadata:
+          labels:
+            app: python-web
+        spec:
+          containers:
+            - name: python-web
+              image: "python_web:${modules.python-web-image.version}"
+              imagePullPolicy: IfNotPresent
+              ports:
+                - name: http
+                  containerPort: 5000
+                  protocol: TCP
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: 500m
+                  memory: 1G

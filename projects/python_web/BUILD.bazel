@@ -1,0 +1,43 @@
+load("@pip//:requirements.bzl", "requirement")
+load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
+# load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
+
+py_library(
+    name = "python_web_lib",
+    srcs = ["python_web.py"],
+    deps = [
+        requirement('Flask'),
+        "//projects/calculator:calculator",
+    ],
+)
+
+py_binary(
+    name = "python_web",
+    srcs = ["python_web.py"],
+    main = "python_web.py",
+    deps = [":python_web_lib"],
+)
+
+py3_image(
+    name = "python_web_image",
+    srcs = ["python_web.py"],
+    main = "python_web.py",
+    deps = [":python_web_lib"],
+)
+
+# container_image(
+#     name = "python_web_container",
+#     files = [
+#         ":python_web",
+#     ],
+# )
+
+# container_push(
+#     name = "python_web_push"
+#     image = ":python_web_container", # a docker target built beforehand
+#     registry = "index.docker.io", # the dockerhub registry
+#     repository = "{{INSERT YOUR DOCKER HUB REPO HERE}}",
+#     tag = "3.2.3",
+#     skip_unchanged_digest = True, # don't push if its the same
+#     format = "Docker",
+# )

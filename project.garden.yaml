@@ -1,0 +1,7 @@
+kind: Project
+name: bazel-garden
+environments:
+  - name: default
+providers:
+  - name: exec
+  - name: local-kubernetes
