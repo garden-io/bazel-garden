@@ -18,6 +18,15 @@ py_binary(
     deps = [":python_web_lib"],
 )
 
+py_test(
+    name = "python_web_test",
+    srcs = ["python_web_test.py"],
+    deps = [
+        "//projects/calculator:calculator",
+        "//projects/python_web:python_web_lib",
+    ],
+)
+
 py3_image(
     name = "python_web_image",
     srcs = ["python_web.py"],

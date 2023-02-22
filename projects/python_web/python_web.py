@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from random import randint
 
 from projects.calculator.calculator import Calculator
@@ -10,8 +10,14 @@ my_calculator = Calculator()
 def hello():
   num1 = randint(0, 100)
   num2 = randint(0, 100)
-  message = "Did you know {} + {} = {}?".format(num1, num2, my_calculator.add(num1, num2))
-  return message
+  result = my_calculator.add(num1, num2)
+  response = {
+    'num1': num1,
+    'num2': num2,
+    'result': result,
+    'message': "Did you know {} + {} = {}?".format(num1, num2, result)
+  }
+  return jsonify(response)
 
 if __name__ == '__main__':
   app.run(host='0.0.0.0')

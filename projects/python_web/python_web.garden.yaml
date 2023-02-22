@@ -1,16 +1,21 @@
 ---
 kind: Module
 type: exec
+local: true
 name: python-web-image
 description: Build docker image
 include:
   - ./*
 build:
   command: ["bazel", "run", "//projects/python_web:python_web_image", "--", "--norun"]
+tests:
+  - name: python-web-test
+    command: ["bazel", "test", "//projects/python_web:python_web_test"]
 
 ---
 kind: Module
 type: exec
+local: true
 name: python-web-tag-image
 include: []
 description: Tag docker image
@@ -28,6 +33,14 @@ build:
     - python-web-image
 dependencies:
   - re-tag-image
+devMode:
+  command: ["/usr/bin/python", "/app/projects/python_web/python_web_image.binary"]
+  sync:
+    - source: ./
+      target: /app/projects/python_web/
+serviceResource:
+  kind: Deployment
+  name: python-web
 manifests:
   - apiVersion: apps/v1
     kind: Deployment
