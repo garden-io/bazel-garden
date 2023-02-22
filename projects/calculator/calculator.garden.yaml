@@ -1,0 +1,13 @@
+---
+kind: Module
+type: exec
+local: true
+name: calculator
+description: Build calculator python library
+include:
+  - ./*
+build:
+  command: ["bazel", "build", "//projects/calculator:calculator"]
+tests:
+  - name: calculator-test
+    command: ["bazel", "test", "//projects/calculator:calculator_test"]
