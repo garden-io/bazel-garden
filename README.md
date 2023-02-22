@@ -5,6 +5,7 @@ Pre-requisites:
 
 Steps to run:
 - `brew install bazelisk`
+- `garden test`
 - `garden deploy`
 
 Open questions:
