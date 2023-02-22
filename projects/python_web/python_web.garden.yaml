@@ -33,11 +33,6 @@ build:
     - python-web-image
 dependencies:
   - re-tag-image
-devMode:
-  command: ["/usr/bin/python", "/app/projects/python_web/python_web_image.binary"]
-  sync:
-    - source: ./
-      target: /app/projects/python_web/
 serviceResource:
   kind: Deployment
   name: python-web
@@ -73,3 +68,12 @@ manifests:
                 limits:
                   cpu: 500m
                   memory: 1G
+## devMode doesn't work as expected
+#  ⚠ python-web                → Error scanning sync target, path python_web_image.binary: invalid symbolic link: target is absolute
+#  ⚠ python-web                → Error scanning sync target, path python_web_image.binary.runfiles/__main__/external: invalid symbolic link: target is absolute
+
+# devMode:
+#   command: ["/usr/bin/python", "/app/projects/python_web/python_web_image.binary"]
+#   sync:
+#     - source: ./
+#       target: /app/projects/python_web/
