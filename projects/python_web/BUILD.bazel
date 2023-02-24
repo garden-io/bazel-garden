@@ -20,6 +20,7 @@ py_binary(
 
 py_test(
     name = "python_web_test",
+    size = "small",
     srcs = ["python_web_test.py"],
     deps = [
         "//projects/calculator:calculator",

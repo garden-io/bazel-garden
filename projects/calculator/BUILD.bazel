@@ -5,6 +5,7 @@ py_library(
 )
 py_test(
     name = "calculator_test",
+    size = "small",
     srcs = ["calculator_test.py"],
     deps = [
         "//projects/calculator:calculator",
