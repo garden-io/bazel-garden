@@ -1,2 +1,3 @@
 bazel-*
 .garden
+__pycache__

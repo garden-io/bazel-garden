@@ -37,6 +37,43 @@ serviceResource:
   kind: Deployment
   name: python-web
 manifests:
+# Ingress
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: python-web
+    spec:
+      ingressClassName: nginx
+      rules:
+      - host: python-web.local.app.garden
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: python-web
+                port:
+                  number: 80
+# Service
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        module: python-web
+        service: python-web
+      name: python-web
+    spec:
+      ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: http
+      selector:
+        app: python-web
+      sessionAffinity: None
+      type: ClusterIP
+# Deployment
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
