@@ -35,6 +35,12 @@ py3_image(
     deps = [":python_web_lib"],
 )
 
+py3_image(
+    name = "python_web_test_image",
+    srcs = ["python_web_test.py"],
+    main = "python_web_test.py",
+    deps = [":python_web_lib"],
+)
 # container_image(
 #     name = "python_web_container",
 #     files = [

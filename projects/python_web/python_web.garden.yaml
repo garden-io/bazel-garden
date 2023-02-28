@@ -4,10 +4,12 @@ type: exec
 local: true
 name: python-web-image
 description: Build docker image
+variables:
+  bazel-image-target: "${command.name == 'test' ? 'python_web_test_image' : 'python_web_image'}"
 include:
   - ./*
 build:
-  command: ["bazel", "run", "//projects/python_web:python_web_image", "--", "--norun"]
+  command: ["bazel", "run", "//projects/python_web:${var.bazel-image-target}", "--", "--norun"]
 tests:
   - name: python-web-test
     command: ["bazel", "test", "//projects/python_web:python_web_test"]
@@ -19,18 +21,22 @@ local: true
 name: python-web-tag-image
 include: []
 description: Tag docker image
+variables:
+  bazel-image-target: "${command.name == 'test' ? 'python_web_test_image' : 'python_web_image'}"
 build:
   dependencies:
     - name: python-web-image
 tasks:
   - name: re-tag-image
-    command: ["docker", "tag", "bazel/projects/python_web:python_web_image", "python_web:${modules.python-web-image.version}"]
+    command: ["docker", "tag", "bazel/projects/python_web:${var.bazel-image-target}", "${var.bazel-image-target}:${modules.python-web-image.version}"]
 
 ---
 kind: Module
 name: python-web
 type: kubernetes
 include: []
+variables:
+  bazel-image-target: "${command.name == 'test' ? 'python_web_test_image' : 'python_web_image'}"
 build:
   dependencies:
     - python-web-image
@@ -95,7 +101,7 @@ manifests:
         spec:
           containers:
             - name: python-web
-              image: "python_web:${modules.python-web-image.version}"
+              image: "${var.bazel-image-target}:${modules.python-web-image.version}"
               imagePullPolicy: IfNotPresent
               ports:
                 - name: http
@@ -118,6 +124,9 @@ tests:
     args:
       - echo
       - ok
+  - name: python-web-integ
+    dependencies:
+      - re-tag-image
 
 ## devMode doesn't work as expected
 #  ⚠ python-web                → Error scanning sync target, path python_web_image.binary: invalid symbolic link: target is absolute
