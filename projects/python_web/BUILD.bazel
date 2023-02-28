@@ -1,6 +1,13 @@
 load("@pip//:requirements.bzl", "requirement")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-# load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
+
+
+# load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
+# load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
+# load("@com_github_google_rules_install//installer:def.bzl", "installer")
+# load("//rules:local-deploy.bzl", "local_deploy")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
 py_library(
     name = "python_web_lib",
@@ -18,22 +25,124 @@ py_binary(
     deps = [":python_web_lib"],
 )
 
-py_test(
-    name = "python_web_test",
-    size = "small",
+py_library(
+    name = "python_web_test_lib",
     srcs = ["python_web_test.py"],
     deps = [
+        requirement('Flask'),
         "//projects/calculator:calculator",
-        "//projects/python_web:python_web_lib",
     ],
 )
 
+py_binary(
+    name = "python_web_test",
+    srcs = ["python_web_test.py"],
+    main = "python_web_test.py",
+    deps = [":python_web_lib"],
+)
+
+container_image(
+    name = "python_web_docker",
+    base = "@debian_base//image",
+    directory = "/app",
+    # entrypoint =
+    #       "chmod +x /model_server.sh; \
+    #       bin/bash /model_server.sh  ",
+    files = [
+        ":python_web_image",
+        ":python_web_image_integ"
+    ],
+)
+
+# py_test(
+#     name = "python_web_test",
+#     size = "small",
+#     srcs = ["python_web_test.py"],
+#     deps = [
+#         "//projects/calculator:calculator",
+#         "//projects/python_web:python_web_lib",
+#     ],
+# )
+
+# TODO: add another image rule along with test inside
+
+
 py3_image(
     name = "python_web_image",
-    srcs = ["python_web.py"],
+    srcs = [
+        "python_web.py",
+    ],
     main = "python_web.py",
     deps = [":python_web_lib"],
 )
+
+container_image(
+    name = "python_web_common",
+    testonly = True,
+    base = ":python_web_image",
+    files = [":python_web_test"],
+)
+
+py3_image(
+    name = "python_web_image_integ",
+    srcs = [
+        "python_web_test.py",
+    ],
+    main = "python_web_test.py",
+    deps = [":python_web_lib"],
+)
+
+
+# The following defines our base builder image for the dataform repo.
+# container_run_and_commit(
+#     name = "builder",
+#     commands = [
+#         # Install apt packages.
+#         "apt update",
+#         "apt install -yq build-essential cmake git ca-certificates apt-transport-https gnupg2 lsb-release wget curl python2 python3.9 default-jre default-jdk",
+#         # Update certificates.
+#         "update-ca-certificates",
+#         # Install docker.
+#         "curl -fsSL https://get.docker.com -o get-docker.sh",
+#         "chmod +x get-docker.sh",
+#         "./get-docker.sh",
+#         # Install bazelisk.
+#         "wget https://github.com/bazelbuild/bazelisk/releases/download/v1.2.1/bazelisk-linux-amd64 -O /usr/bin/bazel",
+#         "chmod +x /usr/bin/bazel",
+#         # Set python versions.
+#         "ln -sf /usr/bin/python2.7 /usr/bin/python",
+#         "ln -sf /usr/bin/python3.9 /usr/bin/python3"
+#     ],
+#     image = "@debian_base//image",
+#     tags = [
+#         "no-remote",
+#     ],
+# )
+
+# container_push(
+#     name = "builder.push",
+#     format = "Docker",
+#     image = ":builder_commit.tar",
+#     # registry = "gcr.io",
+#     # repository = "dataform-public/dataform-builder",
+#     # tag = "latest",
+# )
+
+
+############################################
+
+# installer(
+#     name = "copy_python_web",
+#     data = [":python_web"],
+# )
+
+
+# local_deploy(
+#     name = "copy_python_web",
+#     srcs = [":python_web_image"],
+#     target = "//project/python_web/",
+# )
+
 
 # container_image(
 #     name = "python_web_container",

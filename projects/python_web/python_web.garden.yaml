@@ -118,6 +118,13 @@ tests:
     args:
       - echo
       - ok
+  - name: python-web-integ-2
+    dependencies:
+      - re-tag-integ-image
+    command:
+      - /usr/bin/python
+    args:
+      - /app/projects/python_web/python_web_image_integ.binary
 
 ## devMode doesn't work as expected
 #  ⚠ python-web                → Error scanning sync target, path python_web_image.binary: invalid symbolic link: target is absolute
@@ -128,3 +135,82 @@ tests:
 #   sync:
 #     - source: ../../bazel-bin/projects/python_web/python_web.runfiles
 #       target: /app/projects/python_web/
+
+---
+kind: Module
+type: exec
+local: true
+name: python-web-image-integ
+description: Build docker image
+include:
+  - ./*
+build:
+  command: ["bazel", "run", "//projects/python_web:python_web_image_integ", "--", "--norun"]
+
+---
+kind: Module
+type: exec
+local: true
+name: python-web-integ-tag-image
+include: []
+description: Tag docker image
+build:
+  dependencies:
+    - name: python-web-image-integ
+tasks:
+  - name: re-tag-integ-image
+    command: ["docker", "tag", "bazel/projects/python_web:python_web_image_integ", "python_web_integ:${modules.python-web-image-integ.version}"]
+---
+kind: Module
+name: python-web-integ
+type: kubernetes
+include: []
+build:
+  dependencies:
+    - python-web-image-integ
+dependencies:
+  - re-tag-integ-image
+serviceResource:
+  kind: Deployment
+  name: python-web-integ
+manifests:
+# Deployment
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: python-web-integ
+      labels:
+        app: python-web-integ
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: python-web-integ
+      template:
+        metadata:
+          labels:
+            app: python-web-integ
+        spec:
+          containers:
+            - name: python-web-integ
+              image: "python_web_integ:${modules.python-web-image-integ.version}"
+              imagePullPolicy: IfNotPresent
+              ports:
+                - name: http
+                  containerPort: 5000
+                  protocol: TCP
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: 500m
+                  memory: 1G
+tests:
+  - name: python-web-integ
+    dependencies:
+      - re-tag-integ-image
+    command:
+      - /usr/bin/python
+    args:
+      - /app/projects/python_web/python_web_image_integ.binary
