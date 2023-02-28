@@ -11,9 +11,7 @@ class TestCalculator(unittest.TestCase):
         self.calculator = Calculator()
 
     def test_hello(self):
-        print("testing")
         response = self.client.get('/')
-        print(response)
         data = response.get_json()
         num1 = data['num1']
         num2 = data['num2']
