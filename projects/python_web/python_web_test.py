@@ -12,7 +12,7 @@ class TestCalculator(unittest.TestCase):
 
     def test_hello(self):
         print("testing")
-        response = self.client.get('/')
+        response = self.client.get('/api/v1/')
         print(response)
         data = response.get_json()
         num1 = data['num1']

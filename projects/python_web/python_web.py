@@ -3,7 +3,7 @@ from random import randint
 
 from projects.calculator.calculator import Calculator
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 my_calculator = Calculator()
 
 def generate_random_calculation():
@@ -14,13 +14,17 @@ def generate_random_calculation():
     'num1': num1,
     'num2': num2,
     'result': result,
-    'message': "Did you know {} + {} = {}?".format(num1, num2, result)
+    'message': "Did you know that {} + {} = {}?".format(num1, num2, result)
   }
 
 @app.route('/api/v1/')
 def api_index():
   random_calculation = generate_random_calculation()
   return jsonify(random_calculation)
+
+@app.route('/healthz')
+def web_health():
+  return "ok"
 
 @app.route('/')
 def web_index():
