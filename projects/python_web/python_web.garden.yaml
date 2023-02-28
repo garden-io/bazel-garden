@@ -19,9 +19,12 @@ local: true
 name: python-web-tag-image
 include: []
 description: Tag docker image
+build:
+  dependencies:
+    - name: python-web-image
 tasks:
   - name: re-tag-image
-    command: ["docker", "tag", "bazel/projects/python_web:python_web_image", "python_web:${modules.python-web-image.version}" ]
+    command: ["docker", "tag", "bazel/projects/python_web:python_web_image", "python_web:${modules.python-web-image.version}"]
 
 ---
 kind: Module
@@ -105,6 +108,17 @@ manifests:
                 limits:
                   cpu: 500m
                   memory: 1G
+tests:
+  - name: python-web-unit
+    dependencies:
+      - re-tag-image
+    command:
+      - /bin/sh
+      - '-c'
+    args:
+      - echo
+      - ok
+
 ## devMode doesn't work as expected
 #  ⚠ python-web                → Error scanning sync target, path python_web_image.binary: invalid symbolic link: target is absolute
 #  ⚠ python-web                → Error scanning sync target, path python_web_image.binary.runfiles/__main__/external: invalid symbolic link: target is absolute
@@ -112,5 +126,5 @@ manifests:
 # devMode:
 #   command: ["/usr/bin/python", "/app/projects/python_web/python_web_image.binary"]
 #   sync:
-#     - source: ./
+#     - source: ../../bazel-bin/projects/python_web/python_web.runfiles
 #       target: /app/projects/python_web/
