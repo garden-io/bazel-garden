@@ -7,7 +7,7 @@ description: Build docker image
 variables:
   bazel-image-target: "${command.name == 'test' ? 'python_web_test_image' : 'python_web_image'}"
 include:
-  - ./*
+  - ./**/*
 build:
   command: ["bazel", "run", "//projects/python_web:${var.bazel-image-target}", "--", "--norun"]
 tests:
@@ -107,6 +107,14 @@ manifests:
                 - name: http
                   containerPort: 5000
                   protocol: TCP
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 5000
+              readinessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 5000
               resources:
                 requests:
                   cpu: 250m
