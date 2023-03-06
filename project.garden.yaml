@@ -1,7 +1,27 @@
 kind: Project
 name: bazel-garden
+variables:
+  hostname: python-web.local.app.garden
+  registry-name: us.gcr.io
+  registry-namespace: garden-demo-324810
 environments:
-  - name: default
+  - name: local
+    variables:
+      hostname: bazel.local.app.garden
+  - name: remote
+    defaultNamespace: bazel-demo-${local.username}
+    variables:
+      hostname: bazel.demo.garden
 providers:
   - name: exec
   - name: local-kubernetes
+    environments: [local]
+    setupIngressController: false
+  - name: kubernetes
+    environments: [remote]
+    namespace: ${environment.namespace}
+    context: gke_garden-demo-324810_us-west2-a_demo-4
+    deploymentRegistry:
+      hostname: var.registry-name
+      namespace: var.registry-namespace
+    buildMode: local-docker

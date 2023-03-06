@@ -28,7 +28,27 @@ build:
     - name: python-web-image
 tasks:
   - name: re-tag-image
-    command: ["docker", "tag", "bazel/projects/python_web:${var.bazel-image-target}", "${var.bazel-image-target}:${modules.python-web-image.version}"]
+    command: ["docker", "tag", "bazel/projects/python_web:${var.bazel-image-target}", "${var.registry-name}/${var.registry-namespace}/${replace(var.bazel-image-target, '_', '-')}:${modules.python-web-image.version}"]
+
+---
+kind: Module
+type: exec
+local: true
+name: python-web-push-image
+include: []
+description: Push docker image
+disabled: ${environment.name != "remote"}
+variables:
+  bazel-image-target: "${command.name == 'test' ? 'python-web-test-image' : 'python-web-image'}"
+build:
+  dependencies:
+    - name: python-web-image
+tasks:
+  - name: push-image
+    dependencies:
+      - re-tag-image
+    command: ["docker", "push", "${var.registry-name}/${var.registry-namespace}/${var.bazel-image-target}:${modules.python-web-image.version}"]
+
 
 ---
 kind: Module
@@ -36,12 +56,13 @@ name: python-web
 type: kubernetes
 include: []
 variables:
-  bazel-image-target: "${command.name == 'test' ? 'python_web_test_image' : 'python_web_image'}"
+  bazel-image-target: "${command.name == 'test' ? 'python-web-test-image' : 'python-web-image'}"
 build:
   dependencies:
     - python-web-image
 dependencies:
   - re-tag-image
+  - push-image
 serviceResource:
   kind: Deployment
   name: python-web
@@ -54,7 +75,7 @@ manifests:
     spec:
       ingressClassName: nginx
       rules:
-      - host: python-web.local.app.garden
+      - host: ${var.hostname}
         http:
           paths:
           - path: /
@@ -101,7 +122,7 @@ manifests:
         spec:
           containers:
             - name: python-web
-              image: "${var.bazel-image-target}:${modules.python-web-image.version}"
+              image: "${var.registry-name}/${var.registry-namespace}/${var.bazel-image-target}:${modules.python-web-image.version}"
               imagePullPolicy: IfNotPresent
               ports:
                 - name: http
