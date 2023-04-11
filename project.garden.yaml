@@ -2,7 +2,7 @@ kind: Project
 name: bazel-garden
 variables:
   hostname: python-web.local.app.garden
-  registry-name: us.gcr.io
+  registry-name: eu.gcr.io
   registry-namespace: garden-demo-324810
 environments:
   - name: local
@@ -20,7 +20,7 @@ providers:
   - name: kubernetes
     environments: [remote]
     namespace: ${environment.namespace}
-    context: gke_garden-demo-324810_us-west2-a_demo-4
+    context: gke_garden-demo-324810_europe-west3_demo-3
     deploymentRegistry:
       hostname: var.registry-name
       namespace: var.registry-namespace
